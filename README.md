@@ -25,7 +25,7 @@ eficiência e utilização de metodologia SOLID.
 
 * **Java 21**
 * **IDE Intellij IDEA**
-* **Banco de Dados: MySQL**
+* **Banco de Dados: H2**
 * **Spring Boot** utilizado para construir a aplicação web
 * **JPA** (Java Persistence API) para mapear os objetos e relacioná-los no banco de dados
 
