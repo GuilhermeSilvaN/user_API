@@ -2,7 +2,11 @@ package com.userCompany.usercad.services;
 
 import com.userCompany.usercad.model.User;
 import com.userCompany.usercad.repositories.UserRepository;
+import com.userCompany.usercad.services.exceptions.DatabaseException;
+import com.userCompany.usercad.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +18,7 @@ public class UserService {
     private UserRepository userRepository;
 
     public User findById(Long id){
-        return userRepository.findById(id).get();
+        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
     }
 
     public List<User> findAll(){
@@ -28,14 +32,26 @@ public class UserService {
 
     @Transactional
     public void deleteById(Long id){
-        userRepository.deleteById(id);
+        try{
+            userRepository.deleteById(id);
+            userRepository.flush();
+        } catch(EmptyResultDataAccessException e){
+            throw new ResourceNotFoundException(id);
+        } catch(DataIntegrityViolationException e){
+            throw new DatabaseException(e.getMessage());
+        }
     }
 
     @Transactional
-    public User update(User user){
-        User updatedUser = userRepository.getReferenceById(user.getId());
-        updateDataUser(updatedUser, user);
-        return userRepository.save(updatedUser);
+    public User update(Long id, User user){
+        try{
+            User userUp = userRepository.getReferenceById(id);
+            updateDataUser(userUp,user);
+            userRepository.flush();
+            return userRepository.save(userUp);
+        } catch(ResourceNotFoundException e){
+            throw new ResourceNotFoundException(id);
+        }
     }
 
     private void updateDataUser(User obj, User user){
